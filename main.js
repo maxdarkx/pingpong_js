@@ -24,6 +24,9 @@ class Bar
 	{
 		this.x = x;
 		this.y = y;
+		this.id = 1;
+		this.initx = x;
+		this.inity = y;
 		this.width = width;
 		this.height =height;
 		this.board = board;
@@ -33,18 +36,38 @@ class Bar
 	}
 	down()
 	{
+		if(this.y < 500)
+
 		this.y += this.speed;
 	}
 
 	up()
 	{
-		this.y -= this.speed;
+		if(this.y > 0)
+		{
+			this.y -= this.speed;
+		}
 	}
 
 	toString()
 	{
 		let text = ("(x,y): (" + this.x + ", " + this.y + ")");
 		return text;
+	}
+
+	reset()
+	{
+		this.x = this.initx;
+		this.y = this.inity;
+	}
+	setId(id)
+	{
+		this.id = id;
+		console.log(this.id);
+	}
+	getId()
+	{
+		return this.id;
 	}
 }
 
@@ -54,11 +77,16 @@ class Ball
 	{
 		this.x = x;
 		this.y = y;
+		this.id = 0;
+		this.initx = x;
+		this.inity = y;
 		this.radius = radius;
-		this.speed_x = 3;
+		this.speed_x = 5;
 		this.speed_y = 0;
-		this.speed = 3;
-		this.direction = 1;
+		this.speed = 5;
+
+		this.direction_x = 1;
+		this.direction_y = 1;
 		this.board = board;
 		board.ball = this;
 		this.kind = "circle";
@@ -68,25 +96,56 @@ class Ball
 
 	move()
 	{
-		this.x += this.speed_x * this.direction;
-		this.y += this.speed_y;
+		if((this.y) > 10 && (this.y) < (this.board.height-10) )
+		{
+			this.x += this.speed_x * this.direction_x;
+			this.y += this.speed_y * this.direction_y;
+		}	
+		else
+		{
+			this.direction_y = -this.direction_y;
+			this.x += this.speed_x * this.direction_x;
+			this.y += this.speed_y * this.direction_y;
+		}
+		//console.log(this.toString());
+	}
+	score()
+	{
+		var who = 0;
+		
+		if(this.x < 10 || this.x > this.board.width-10)
+		{
+			this.x = 400;
+			this.y = 300;
+				
+			if(this.x === 0)
+			{
+				who = 1;
+			}
+			else
+			{
+				who = 2;
+			}
+
+		}
+		return who;
 	}
 
 	collision(bar) //reacciona a las colisiones con las barras
 	{
-		var relative_intersect_y = (bar.y + (bar.height/2)) - this.y;
-		var normalized_intersect_y =relative_intersect_y / (bar.height/2);
+		let relative_intersect_y = (bar.y + (bar.height/2)) - this.y;
+		let normalized_intersect_y =relative_intersect_y / (bar.height/2);
 		this.bounce_angle = normalized_intersect_y * this.max_bounce_angle;
 		this.speed_y = this.speed * -Math.sin(this.bounce_angle);
 		this.speed_x = this.speed *  Math.cos(this.bounce_angle);
 
 		if(this.x > (this.board.width/2))
 		{
-			this.direction = -1;
+			this.direction_x = -1;
 		}
 		else
 		{
-			this.direction = 1;
+			this.direction_x = 1;
 		}
 	}
 
@@ -99,6 +158,31 @@ class Ball
 	{
 		return this.radius*2;	
 	}
+	getId()
+	{
+		return this.id;
+	}
+
+	toString()
+	{
+		var text = "x= "+this.x+" y="+this.y+" speed_x="+this.speed_x+
+			" speed_y="+this.speed_y+" bounce_angle="+this.bounce_angle;
+		return text;
+	}
+
+	reset()
+	{
+		var choosedir = [-1,1];
+		var shuffled = choosedir.sort(() => Math.random() - 0.5);
+		this.initx = this.x;
+		this.inity = this.y;
+		this.direction_x = shuffled[0];
+		this.direction_y = 1;
+		this.bounce_angle = 0;
+		this.speed_x=5;
+		this.speed_y=0;
+		
+	}
 }
 
 class BoardView
@@ -110,6 +194,8 @@ class BoardView
 		this.canvas.width = board.width;
 		this.canvas.height = board.height;
 		this.context = canvas.getContext("2d");
+		this.score_1 = 0;
+		this.score_2 = 0;
 	}
 
 	drawBoard()
@@ -127,9 +213,11 @@ class BoardView
 		switch (element.kind)
 		{
 			case "rectangle":
+				context.fillStyle = "#FF0000";
 				context.fillRect(element.x, element.y, element.width, element.height)
 				break;
 			case "circle":
+				context.fillStyle = "#0000FF";
 				context.beginPath()
 				context.arc(element.x, element.y, element.radius, 0, 7);
 				context.fill();
@@ -144,14 +232,51 @@ class BoardView
 	
 	play()
 	{
+		let player_score = 0;
 		if(this.board.playing)
 		{
 			this.clearScreen();
 			this.drawBoard();
 			this.checkColisions();
-			this.board.ball.move();
+			player_score = this.board.ball.score();
+
+			if(player_score == 0)
+			{
+				this.board.ball.move();
+			}
+			else if(player_score == 1)
+			{
+				this.score_1++;
+				document.getElementById("score").innerHTML="<p'>Player 1: "+this.score_1
+										+ "</p><p>Player 2: "+this.score_2+"</p>";
+				console.log("player 1 score: "+this.score_1)
+				this.reset();
+			}
+			else if(player_score == 2)
+			{
+				this.score_2++;
+				document.getElementById("score").innerHTML="<p'>Player 1: "+this.score_1
+										+ "</p><p>Player 2: "+this.score_2+"</p>";
+				
+				console.log("player 2 score: "+this.score_2)
+				this.reset();
+			}
 		}
 	}
+
+
+	reset()
+	{
+		this.board.playing = !this.board.playing;
+		this.board.bars[0].reset();
+		this.board.bars[1].reset();
+		this.board.ball.reset();
+		this.clearScreen();
+		this.drawBoard();
+		//console.log(ball.toString());
+	}
+
+
 
 	checkColisions()
 	{
@@ -162,7 +287,9 @@ class BoardView
 			{
 				this.board.ball.collision(bar);
 			}
+
 		}
+
 	}
 
 	hit (a,b) //nos fijamos si a colisiona con b
@@ -217,7 +344,9 @@ let board_view = new BoardView(canvas,board);
 let bar1 = new Bar(20,250,40,100,board);
 let bar2 = new Bar(740,250,40,100,board);
 let ball = new Ball(400, 300, 10, board);
-
+document.getElementById("score").innerHTML="<p'>Player 1: "+board_view.score_1
+										+ "</p><p>Player 2: "+board_view.score_2+"</p>";
+				
 document.addEventListener("keydown",function(event)
 	{
 		//teclas: arriba = 38, abajo = 40, w=87, s=83
@@ -248,7 +377,7 @@ document.addEventListener("keydown",function(event)
 			board.playing = !board.playing;
 		}
 
-		console.log("[1." + bar1 + "], [2." + bar2 + "]");
+		//console.log("[1." + bar1 + "], [2." + bar2 + "]");
 
 	});
 board_view.drawBoard();
