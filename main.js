@@ -113,20 +113,17 @@ class Ball
 	{
 		var who = 0;
 		
-		if(this.x < 10 || this.x > this.board.width-10)
+		if(this.x < 10)
 		{
 			this.x = 400;
 			this.y = 300;
-				
-			if(this.x === 0)
-			{
-				who = 1;
-			}
-			else
-			{
-				who = 2;
-			}
-
+			who = 1;
+		}
+		else if (this.x > this.board.width-10)
+		{	
+			this.x = 400;
+			this.y = 300;
+			who = 2;
 		}
 		return who;
 	}
@@ -247,23 +244,43 @@ class BoardView
 			else if(player_score == 1)
 			{
 				this.score_1++;
-				document.getElementById("score").innerHTML="<p'>Player 1: "+this.score_1
-										+ "</p><p>Player 2: "+this.score_2+"</p>";
-				console.log("player 1 score: "+this.score_1)
+				this.printScore();
 				this.reset();
 			}
 			else if(player_score == 2)
 			{
 				this.score_2++;
-				document.getElementById("score").innerHTML="<p'>Player 1: "+this.score_1
-										+ "</p><p>Player 2: "+this.score_2+"</p>";
-				
-				console.log("player 2 score: "+this.score_2)
+				this.printScore();
 				this.reset();
 			}
+			this.checkWin();
+
 		}
 	}
 
+	printScore()
+	{
+		document.getElementById("score").innerHTML="<p'>Player 1: "+this.score_1
+										+ "</p><p>Player 2: "+this.score_2+"</p>";
+		console.log("player 1 score: "+this.score_1);
+	}
+
+	checkWin()
+	{
+		if(this.score_1>=8)
+		{
+			this.board.playing = !this.board.playing;		
+			document.getElementById("score").innerHTML="<p'>Player 1 WINS!</p>";
+			setTimeout(function(){document.location.reload();},5000);
+		
+		}
+		else if(this.score_2>=8)
+		{
+			this.board.playing = !this.board.playing;		
+			document.getElementById("score").innerHTML="<p'>Player 2 WINS!</p>";
+			setTimeout(function(){document.location.reload();},5000);
+		}
+	}
 
 	reset()
 	{
