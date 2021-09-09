@@ -24,7 +24,6 @@ class Bar
 	{
 		this.x = x;
 		this.y = y;
-		this.id = 1;
 		this.initx = x;
 		this.inity = y;
 		this.width = width;
@@ -60,15 +59,7 @@ class Bar
 		this.x = this.initx;
 		this.y = this.inity;
 	}
-	setId(id)
-	{
-		this.id = id;
-		console.log(this.id);
-	}
-	getId()
-	{
-		return this.id;
-	}
+	
 }
 
 class Ball
@@ -77,7 +68,6 @@ class Ball
 	{
 		this.x = x;
 		this.y = y;
-		this.id = 0;
 		this.initx = x;
 		this.inity = y;
 		this.radius = radius;
@@ -94,7 +84,7 @@ class Ball
 		this.max_bounce_angle = Math.PI/12;
 	}
 
-	move()
+	move() //si la pelota toca la parte superior o inferior, rebota mediante el else
 	{
 		if((this.y) > 10 && (this.y) < (this.board.height-10) )
 		{
@@ -107,10 +97,11 @@ class Ball
 			this.x += this.speed_x * this.direction_x;
 			this.y += this.speed_y * this.direction_y;
 		}
-		//console.log(this.toString());
 	}
-	score()
-	{
+
+	score() 							//si la pelota toca alguno de los extremos izquierdo o derecho,
+	{ 									//se verifica quien anoto el punto
+	
 		var who = 0;
 		
 		if(this.x < 10)
@@ -128,7 +119,7 @@ class Ball
 		return who;
 	}
 
-	collision(bar) //reacciona a las colisiones con las barras
+	collision(bar) 					//reacciona a las colisiones con las barras
 	{
 		let relative_intersect_y = (bar.y + (bar.height/2)) - this.y;
 		let normalized_intersect_y =relative_intersect_y / (bar.height/2);
@@ -151,15 +142,12 @@ class Ball
 	{
 		return this.radius*2;
 	}
+	
 	get height()
 	{
 		return this.radius*2;	
 	}
-	getId()
-	{
-		return this.id;
-	}
-
+	
 	toString()
 	{
 		var text = "x= "+this.x+" y="+this.y+" speed_x="+this.speed_x+
@@ -167,8 +155,9 @@ class Ball
 		return text;
 	}
 
-	reset()
-	{
+	reset() 			//resetea el juego despues de que algun jugador anota un punto.
+	{					//La direccion a la que se dirigira la pelota se calcula al azar
+	
 		var choosedir = [-1,1];
 		var shuffled = choosedir.sort(() => Math.random() - 0.5);
 		this.initx = this.x;
@@ -227,8 +216,8 @@ class BoardView
 		this.context.clearRect(0, 0,this.board.width, this.board.height);
 	}
 	
-	play()
-	{
+	play()						//se juega hasta que algun jugador anota (player_score > 0), se calcula quien				
+	{							//anoto el punto, se modifica el marcador y se reanuda la partida
 		let player_score = 0;
 		if(this.board.playing)
 		{
@@ -258,15 +247,14 @@ class BoardView
 		}
 	}
 
-	printScore()
+	printScore() 				//mensaje que muestra el marcador en el HTML
 	{
 		document.getElementById("score").innerHTML="<p'>Player 1: "+this.score_1
 										+ "</p><p>Player 2: "+this.score_2+"</p>";
-		console.log("player 1 score: "+this.score_1);
 	}
 
-	checkWin()
-	{
+	checkWin()					//Se verifica si algun jugador ha ganado la partida
+	{							//de ser asi, se muestra un mensaje y se recarga la pagina
 		if(this.score_1>=8)
 		{
 			this.board.playing = !this.board.playing;		
@@ -295,7 +283,7 @@ class BoardView
 
 
 
-	checkColisions()
+	checkColisions()		//fisicas de verificacion de colisiones
 	{
 		for(var i = this.board.bars.length -1; i>=0; i--)
 		{
@@ -309,7 +297,7 @@ class BoardView
 
 	}
 
-	hit (a,b) //nos fijamos si a colisiona con b
+	hit (a,b) 		//nos fijamos si a colisiona con b
 	{
 		var hit = false;
 
@@ -346,7 +334,7 @@ class BoardView
 	}
 }
 
-function controller()
+function controller()	
 {
 	board_view.play();
 	window.requestAnimationFrame(controller);
@@ -364,7 +352,7 @@ let ball = new Ball(400, 300, 10, board);
 document.getElementById("score").innerHTML="<p'>Player 1: "+board_view.score_1
 										+ "</p><p>Player 2: "+board_view.score_2+"</p>";
 				
-document.addEventListener("keydown",function(event)
+document.addEventListener("keydown",function(event)		//controlador de ingreso de datos por teclado
 	{
 		//teclas: arriba = 38, abajo = 40, w=87, s=83
 
