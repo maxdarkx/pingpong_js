@@ -12,7 +12,7 @@ class Board
 	}
 	get elements ()
 	{
-		let elements = this.bars;
+		let elements = this.bars.map(function(bar){return bar;});
 		elements.push(this.ball);
 		return elements;
 	}
@@ -48,6 +48,21 @@ class Bar
 	}
 }
 
+class Ball
+{
+	constructor(x, y, radius, board)
+	{
+		this.x = x;
+		this.y = y;
+		this.radius = radius;
+		this.speed_x = 0;
+		this.speed_y = 3;
+		this.board = board;
+		board.ball = this;
+		this.kind = "circle";
+	}
+}
+
 class BoardView
 {
 	constructor(canvas, board)
@@ -71,35 +86,47 @@ class BoardView
 
 	drawElement(context, element)
 	{
-		if(element != null && element.hasOwnProperty("kind"))
+		switch (element.kind)
 		{
-			switch (element.kind)
-			{
-				case "rectangle":
-					context.fillRect(element.x, element.y, element.width, element.height)
-					break;
-				case "circle":
-					context.fillRect(element.x, element.y, element.width, element.height)
-					break;
-			}
+			case "rectangle":
+				context.fillRect(element.x, element.y, element.width, element.height)
+				break;
+			case "circle":
+				context.beginPath()
+				context.arc(element.x, element.y, element.radius, 0, 7);
+				context.fill();
+				context.closePath();
+				break;
 		}
+	}
+	clearScreen()
+	{
+		this.context.clearRect(0, 0,this.board.width, this.board.height);
+	}
+	play()
+	{
+		this.clearScreen();
+		this.drawBoard();
 	}
 }
 
-
-function main()
+function controller()
 {
-	const widthBoard = 800;
-	const heightBoard = 600;
-	let canvas = document.getElementById('canvas');
-	let board = new Board(widthBoard, heightBoard);
-	let board_view = new BoardView(canvas,board);
-	let bar1 = new Bar(20,250,40,100,board);
-	let bar2 = new Bar(740,250,40,100,board);
-	console.log(board);
-	board_view.drawBoard();
+	board_view.play();
+	window.requestAnimationFrame(controller);
+}
 
-	document.addEventListener("keydown",function(event)
+
+const widthBoard = 800;
+const heightBoard = 600;
+let canvas = document.getElementById('canvas');
+let board = new Board(widthBoard, heightBoard);
+let board_view = new BoardView(canvas,board);
+let bar1 = new Bar(20,250,40,100,board);
+let bar2 = new Bar(740,250,40,100,board);
+let ball = new Ball(400, 300, 10, board);
+
+document.addEventListener("keydown",function(event)
 	{
 		//teclas: arriba = 38, abajo = 40, w=87, s=83
 
@@ -124,8 +151,5 @@ function main()
 
 	});
 
-}
-
-
-window.addEventListener("load", main);
+controller();
 
