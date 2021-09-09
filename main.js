@@ -55,11 +55,18 @@ class Ball
 		this.x = x;
 		this.y = y;
 		this.radius = radius;
-		this.speed_x = 0;
-		this.speed_y = 3;
+		this.speed_x = 3;
+		this.speed_y = 0;
+		this.direction = 1;
 		this.board = board;
 		board.ball = this;
 		this.kind = "circle";
+	}
+
+	move()
+	{
+		this.x += this.speed_x * this.direction;
+		this.y += this.speed_y;
 	}
 }
 
@@ -105,8 +112,12 @@ class BoardView
 	}
 	play()
 	{
-		this.clearScreen();
-		this.drawBoard();
+		if(this.board.playing)
+		{
+			this.clearScreen();
+			this.drawBoard();
+			this.board.ball.move();
+		}
 	}
 }
 
@@ -132,24 +143,33 @@ document.addEventListener("keydown",function(event)
 
 		if(event.keyCode == 87)
 		{
+			event.preventDefault();
 			bar1.up();
 		}
 		else if(event.keyCode == 83 )
 		{
+			event.preventDefault();
 			bar1.down();
 		}
 		else if(event.keyCode == 38)
 		{
+			event.preventDefault();
 			bar2.up();
 		}
 		else if(event.keyCode == 40)
 		{
+			event.preventDefault();
 			bar2.down();
+		}
+		else if(event.keyCode == 32)
+		{
+			event.preventDefault();
+			board.playing = !board.playing;
 		}
 
 		console.log("[1." + bar1 + "], [2." + bar2 + "]");
 
 	});
-
+board_view.drawBoard();
 controller();
 
